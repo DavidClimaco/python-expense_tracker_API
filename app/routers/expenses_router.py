@@ -22,9 +22,7 @@ async def list_expenses(
     return session.exec(statement).all()
 
 
-@router.get(
-    "/expenses/{expenses_id}", status_code=status.HTTP_200_OK, tags=["Expenses"]
-)
+@router.get("/expenses/{expense_id}", status_code=status.HTTP_200_OK, tags=["Expenses"])
 async def get_expense(
     session: SessionDep,
     expense_id: int,
@@ -44,24 +42,30 @@ async def get_expense(
     return expense_db
 
 
-@router.post("/expenses/", status_code=status.HTTP_201_CREATED, tags=["Expenses"])
+@router.post("/expenses", status_code=status.HTTP_201_CREATED, tags=["Expenses"])
 async def add_expense(
     session: SessionDep,
     expense_data: ExpenseCreate,
     current_user: Annotated[User, Depends(get_current_user)],
 ):
     """Permite agregar un Expense a la base de datos vinculado al usuario logueado"""
-    new_expense = Expense.model_validate(
-        expense_data, update={"user_id": current_user.id}
-    )
-    session.add(new_expense)
-    session.commit()
-    session.refresh(new_expense)
-    return new_expense
+    try:
+        new_expense = Expense.model_validate(
+            expense_data, update={"user_id": current_user.id}
+        )
+        session.add(new_expense)
+        session.commit()
+        session.refresh(new_expense)
+        return new_expense
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The ammount and category fields are required",
+        )
 
 
 @router.patch(
-    "/expenses/{expenses_id}", status_code=status.HTTP_200_OK, tags=["Expenses"]
+    "/expenses/{expense_id}", status_code=status.HTTP_200_OK, tags=["Expenses"]
 )
 async def update_expense(
     session: SessionDep,
@@ -90,11 +94,11 @@ async def update_expense(
 
 
 @router.delete(
-    "/expenses/{expenses_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Expenses"]
+    "/expenses/{expense_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Expenses"]
 )
 async def delete_expense(
     session: SessionDep,
-    expense_id,
+    expense_id: int,
     current_user: Annotated[User, Depends(get_current_user)],
 ):
     """Eliminación de un Expense que pertenezca al usuario"""

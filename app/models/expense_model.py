@@ -24,8 +24,8 @@ class CategoryEnum(str, Enum):
 
 class ExpenseBase(SQLModel):
     description: str | None = Field(default=None)
-    ammount: float = Field()
-    category: CategoryEnum = Field()
+    ammount: float = Field(default=None)
+    category: CategoryEnum = Field(default=None)
 
 
 class Expense(ExpenseBase, table=True):

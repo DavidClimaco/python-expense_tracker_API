@@ -44,7 +44,8 @@ async def login(
     # OAuth2 solo permite username y password para la verificación, así que para la consulta usamos el email que viene en el username del login
     user_email = user_data.username
     user_password = user_data.password
-    statement = select(User).where(col(User.email).match(user_email))
+    # statement = select(User).where(col(User.email).match(user_email)) <- Mejor forma para validar en PostgreSQL, pero en testing para SQLite falla
+    statement = select(User).where(User.email == user_email)
     user_db = session.exec(statement).first()
     if not user_db:
         raise HTTPException(

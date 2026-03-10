@@ -15,14 +15,20 @@ async def register_user(
     user_data: UserCreate,
 ):
     """Permite registrar un nuevo usuario en la base de datos"""
-    new_user = User.model_validate(user_data.model_dump())
-    new_user.sqlmodel_update(
-        new_user, update={"password": get_password_hash(user_data.password)}
-    )
-    session.add(new_user)
-    session.commit()
-    session.refresh(new_user)
-    return new_user
+    try:
+        new_user = User.model_validate(user_data.model_dump())
+        new_user.sqlmodel_update(
+            new_user, update={"password": get_password_hash(user_data.password)}
+        )
+        session.add(new_user)
+        session.commit()
+        session.refresh(new_user)
+        return new_user
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The email, password and name fields are required",
+        )
 
 
 @router.patch("/register/{user_id}", status_code=status.HTTP_200_OK, tags=["Users"])
